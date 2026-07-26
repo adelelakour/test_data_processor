@@ -32,16 +32,16 @@ def simple_data():
 
 
 @pytest.fixture
-def json_file_path():
-    return Path("output") / "test_json.json"
+def json_file_path(tmp_path):
+    return tmp_path / "test_json.json"
 
 @pytest.fixture
-def yaml_file_path():
-    return Path("output") / "test_yaml.yaml"
+def yaml_file_path(tmp_path):
+    return tmp_path / "test_yaml.yaml"
 
 @pytest.fixture
-def csv_file_path():
-    return Path("output") / "test_csv.csv"
+def csv_file_path(tmp_path):
+    return tmp_path / "test_csv.csv"
 
 @pytest.fixture
 def invalid_path():
@@ -51,7 +51,6 @@ def invalid_path():
 
 #test (write_json) function
 def test_write_json_creates_file(simple_data, json_file_path):
-
     writers.write_json(simple_data, json_file_path)
     assert json_file_path.exists()
 
@@ -107,4 +106,7 @@ def test_write_csv_invalid_output_directory(simple_data, invalid_path):
     with pytest.raises(NotADirectoryError):
         writers.write_csv(simple_data, invalid_path)
 
+import time
 
+def test_tmp_path(tmp_path):
+    print(tmp_path)
