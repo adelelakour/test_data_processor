@@ -7,8 +7,7 @@ import csv
 
 
 
-
-#sample data
+@pytest.fixture
 def simple_data():
     return {
         "project": "Autonomous Vehicle Validation",
@@ -32,79 +31,80 @@ def simple_data():
     }
 
 
+@pytest.fixture
+def json_file_path():
+    return Path("output") / "test_json.json"
+
+@pytest.fixture
+def yaml_file_path():
+    return Path("output") / "test_yaml.yaml"
+
+@pytest.fixture
+def csv_file_path():
+    return Path("output") / "test_csv.csv"
+
+@pytest.fixture
+def invalid_path():
+    return Path("outputt") / "x.csv"
+
 
 
 #test (write_json) function
-def test_write_json_creates_file():
-    file = Path("output") / "test_json.json"
-    minimum_data = simple_data()
-    writers.write_json(minimum_data, file)
-    assert file.exists()
+def test_write_json_creates_file(simple_data, json_file_path):
+
+    writers.write_json(simple_data, json_file_path)
+    assert json_file_path.exists()
 
 
-def test_write_json_writes_correct_content():
-    file = Path("output") / "test_json.json"
-    minimum_data = simple_data()
-    writers.write_json(minimum_data, file)
-    with open(file, 'r') as f:
+def test_write_json_writes_correct_content(simple_data, json_file_path):
+    writers.write_json(simple_data, json_file_path)
+    with open(json_file_path, 'r') as f:
         retrieved_data = json.load(f)
-    assert retrieved_data == minimum_data
+    assert retrieved_data == simple_data
 
 
-def test_write_json_invalid_output_directory():
-    file = Path("outputt") / "test_json.json"
-    minimum_data = simple_data()
-    with pytest.raises(FileNotFoundError):
-        writers.write_json(minimum_data, file)
+def test_write_json_invalid_output_directory(simple_data, invalid_path):
+    with pytest.raises(NotADirectoryError):
+        writers.write_json(simple_data, invalid_path)
 
 
 
 
 #test (write_yaml) function
-def test_write_yaml_creates_file():
-    file = Path("output") / "test_yaml.yaml"
-    minimum_data = simple_data()
-    writers.write_yaml(minimum_data, file)
-    assert file.exists()
+def test_write_yaml_creates_file(simple_data, yaml_file_path):
+    writers.write_yaml(simple_data, yaml_file_path)
+    assert yaml_file_path.exists()
 
 
-def test_write_yaml_writes_correct_content():
-    file = Path("output") / "test_yaml.yaml"
-    minimum_data = simple_data()
-    writers.write_yaml(minimum_data, file)
-    with open(file, 'r') as f:
+def test_write_yaml_writes_correct_content(simple_data, yaml_file_path):
+    writers.write_yaml(simple_data, yaml_file_path)
+    with open(yaml_file_path, 'r') as f:
         retrieved_data = yaml.safe_load(f)
-    assert retrieved_data == minimum_data
+    assert retrieved_data == simple_data
 
 
-def test_write_yaml_invalid_output_directory():
-    file = Path("outputt") / "test_yaml.yaml"
-    minimum_data = simple_data()
-    with pytest.raises(FileNotFoundError):
-        writers.write_yaml(minimum_data, file)
+def test_write_yaml_invalid_output_directory(simple_data, invalid_path):
+    with pytest.raises(NotADirectoryError):
+        writers.write_yaml(simple_data, invalid_path)
 
 
 #test (write_csv) function
-def test_write_csv_creates_file():
-    file = Path("output") / "test_csv.csv"
-    minimum_data = simple_data()
-    writers.write_csv(minimum_data, file)
-    assert file.exists()
+def test_write_csv_creates_file(simple_data, csv_file_path):
+    writers.write_csv(simple_data, csv_file_path)
+    assert csv_file_path.exists()
 
 
-def test_write_csv_writes_correct_content():
-    file = Path("output") / "test_csv.csv"
-    minimum_data = simple_data()
-    writers.write_csv(minimum_data, file)
-    with open(file, 'r') as f:
+def test_write_csv_writes_correct_content(simple_data, csv_file_path):
+    writers.write_csv(simple_data, csv_file_path)
+    with open(csv_file_path, 'r') as f:
         retrieved_data = list(csv.DictReader(f))
 
     for item in retrieved_data[0]:
-        assert retrieved_data[0][item] == str(minimum_data["tests"][0][item])
+        assert retrieved_data[0][item] == str(simple_data["tests"][0][item])
 
 
-def test_write_csv_invalid_output_directory():
-    file = Path("outputt") / "test_csv.csv"
-    minimum_data = simple_data()
-    with pytest.raises(FileNotFoundError):
-        writers.write_csv(minimum_data, file)
+def test_write_csv_invalid_output_directory(simple_data, invalid_path):
+    with pytest.raises(NotADirectoryError):
+        writers.write_csv(simple_data, invalid_path)
+
+
