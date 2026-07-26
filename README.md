@@ -1,39 +1,43 @@
 # TestDataProcessor
 
-`TestDataProcessor` is a small Python command-line tool for converting autonomous vehicle test data between `JSON`, `YAML`, and `CSV`.
+`TestDataProcessor` is a small Python CLI for reading autonomous vehicle test data from `JSON`, `YAML`, or `CSV`, validating the records, and writing the dataset back out in another format.
 
-The current implementation reads input files from [`input/`](/home/adelelakour/DataConverter/input), validates the test records, and writes the converted result to [`output/`](/home/adelelakour/DataConverter/output).
+The project is intentionally simple: file locations are fixed to the local `input/` and `output/` folders, and the conversion flow is implemented directly in [`converter.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/converter.py:1).
 
-## Current Features
+## What The Project Does
 
-- Read `JSON`, `YAML`, and `CSV`
-- Write `JSON`, `YAML`, and `CSV`
-- Validate record schema before writing output
-- Validate basic field types
-- Restrict `status` to `Passed` or `Failed`
+- Reads source files from `input/`
+- Supports `.json`, `.yaml`, and `.csv` input
+- Validates schema, types, and allowed `status` values
+- Writes converted files to `output/`
+- Includes pytest coverage for parsers, validators, and writers
 
-## Project Structure
+## Project Layout
 
 ```text
-TestDataProcessor/
-├── converter.py      # CLI entry point
-├── parsers.py        # Input readers
-├── writers.py        # Output writers
-├── validator.py      # Schema and type validation
-├── transformer.py    # Early transformation helper
-├── input/            # Sample source files
-└── output/           # Generated files
+test_data_processor/
+├── converter.py
+├── parsers.py
+├── validator.py
+├── writers.py
+├── transformer.py
+├── utils.py
+├── input/
+├── output/
+├── tests/
+└── requirements.txt
 ```
 
 ## Requirements
 
 - Python 3
 - `PyYAML`
+- `pytest` for running tests
 
-Install the YAML dependency with:
+Install dependencies with:
 
 ```bash
-pip install pyyaml
+pip install -r requirements.txt
 ```
 
 ## Usage
@@ -44,24 +48,30 @@ Run the converter from the repository root:
 python3 converter.py <input-file> <output-file>
 ```
 
-Example:
+Examples:
 
 ```bash
 python3 converter.py data.json converted.yaml
-python3 converter.py data.csv converted.json
 python3 converter.py data.yaml converted.csv
+python3 converter.py data.csv converted.json
 ```
 
-The program expects:
+How paths work:
 
-- the source file to exist under [`input/`](/home/adelelakour/DataConverter/input)
-- the destination file name to be written under [`output/`](/home/adelelakour/DataConverter/output)
+- `<input-file>` is resolved as `input/<input-file>`
+- `<output-file>` is resolved as `output/<output-file>`
 
-For example, `python3 converter.py data.json converted.yaml` reads `input/data.json` and writes `output/converted.yaml`.
+So this command:
 
-## Expected Data Shape
+```bash
+python3 converter.py data.json converted.yaml
+```
 
-For `JSON` and `YAML`, the tool expects a top-level object like:
+reads `input/data.json` and writes `output/converted.yaml`.
+
+## Supported Data Shape
+
+For `JSON` and `YAML`, the tool expects a top-level mapping with a `tests` list:
 
 ```json
 {
@@ -86,21 +96,21 @@ For `JSON` and `YAML`, the tool expects a top-level object like:
 }
 ```
 
-For `CSV`, each row represents one test record using these columns:
+For `CSV`, each row must contain these columns:
 
 ```text
 id,name,category,status,priority,duration,vehicle,environment,temperature,executed_by,timestamp
 ```
 
-When reading CSV, the current implementation fills metadata with:
+When reading CSV, the parser injects metadata as:
 
 - `project: "Unknown"`
 - `version: "Unknown"`
-- `generated_at: null`
+- `generated_at: None`
 
 ## Validation Rules
 
-Each test must include these fields:
+Each test record must contain:
 
 - `id`
 - `name`
@@ -116,27 +126,52 @@ Each test must include these fields:
 
 Current validation checks:
 
-- `id` must be an integer and non-negative
-- `duration` must be numeric and non-negative
-- `temperature` must be numeric
-- most remaining fields must be strings
+- `tests` must exist and must not be empty
+- `id` must be an `int` and non-negative
+- `duration` must be an `int` or `float` and non-negative
+- `temperature` must be an `int` or `float`
+- `name`, `category`, `status`, `priority`, `vehicle`, `environment`, `executed_by`, and `timestamp` must be strings
 - `status` must be either `Passed` or `Failed`
 
-If validation fails, the program prints an error message and stops without writing the converted file.
+## Current Behavior And Limitations
 
-## Notes And Limitations
+- Only `.json`, `.csv`, and `.yaml` are handled explicitly
+- File locations are hardcoded through [`utils.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/utils.py:1)
+- The CLI does not provide help text or argument validation
+- If validation fails, the program prints the exception message, but it does not exit early before the writer step
+- Empty YAML files load as `None`, which will then fail later during validation
+- CSV parsing converts `id` to `int`, `duration` to `float`, and `temperature` to `int` while reading
+- [`transformer.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/transformer.py:1) contains a filtering helper, but it is not connected to the CLI flow and currently uses incorrect metadata keys
+- [`utils.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/utils.py:1) imports `Path` correctly and simply maps CLI arguments into `input/` and `output/`
 
-- Input and output directories are hardcoded in `converter.py`
-- There is no argument parsing or help output yet
-- Unsupported file extensions are not handled explicitly
-- `statistics.py` and `utils.py` are present but currently empty
-- `transformer.py` exists but is not wired into the CLI flow
-- The `tests/` directory exists, but there are no test files yet
+## Running Tests
 
-## Next Improvements
+Run the test suite from the repository root:
 
-- Add automated tests
-- Add a `requirements.txt` or `pyproject.toml`
-- Improve CLI argument validation and usage help
-- Support custom input and output paths
-- Add transformation and filtering options
+```bash
+pytest
+```
+
+The current tests cover:
+
+- parser behavior for valid, empty, malformed, and missing files
+- validator behavior for schema, type, and status failures
+- writer behavior for JSON, YAML, and CSV output
+
+## Main Modules
+
+- [`converter.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/converter.py:1): CLI entry point and format routing
+- [`parsers.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/parsers.py:1): JSON, YAML, and CSV readers
+- [`validator.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/validator.py:1): schema and field validation
+- [`writers.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/writers.py:1): JSON, YAML, and CSV writers
+- [`transformer.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/transformer.py:1): unused status filter helper
+- [`utils.py`](/home/adelelakour/TestDataProsessor_local/test_data_processor/utils.py:1): CLI path handling
+
+## Suggested Next Improvements
+
+- stop conversion immediately when validation fails
+- add argument count checks and `--help`
+- support custom input and output paths
+- handle unsupported extensions explicitly
+- either fix and integrate `transformer.py` or remove it
+- add higher-level integration tests for the full CLI flow
