@@ -106,7 +106,3 @@ def test_write_csv_invalid_output_directory(simple_data, invalid_path):
     with pytest.raises(NotADirectoryError):
         writers.write_csv(simple_data, invalid_path)
 
-import time
-
-def test_tmp_path(tmp_path):
-    print(tmp_path)

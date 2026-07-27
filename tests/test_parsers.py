@@ -1,8 +1,5 @@
 from json import JSONDecodeError
-
-import yaml
 from yaml import YAMLError
-
 import parsers
 import pytest
 from pathlib import Path
@@ -98,3 +95,9 @@ def test_read_csv_empty_file() -> None:
 def test_read_csv_not_existing_file() -> None:
     with pytest.raises(FileNotFoundError):
         parsers.read_csv(Path("tests/data") / "x.csv")
+
+
+
+
+
+
