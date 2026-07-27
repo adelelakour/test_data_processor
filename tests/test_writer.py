@@ -83,7 +83,7 @@ def test_write_yaml_writes_correct_content(simple_data, yaml_file_path):
 
 
 def test_write_yaml_invalid_output_directory(simple_data, invalid_path):
-    with pytest.raises(NotADirectoryError):
+    with pytest.raises(FileNotFoundError):
         writers.write_yaml(simple_data, invalid_path)
 
 
@@ -103,6 +103,6 @@ def test_write_csv_writes_correct_content(simple_data, csv_file_path):
 
 
 def test_write_csv_invalid_output_directory(simple_data, invalid_path):
-    with pytest.raises(NotADirectoryError):
+    with pytest.raises(FileNotFoundError):
         writers.write_csv(simple_data, invalid_path)
 
