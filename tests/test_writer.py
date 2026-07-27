@@ -63,7 +63,7 @@ def test_write_json_writes_correct_content(simple_data, json_file_path):
 
 
 def test_write_json_invalid_output_directory(simple_data, invalid_path):
-    with pytest.raises(NotADirectoryError):
+    with pytest.raises(FileNotFoundError):
         writers.write_json(simple_data, invalid_path)
 
 
